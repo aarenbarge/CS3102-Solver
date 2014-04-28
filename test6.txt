@@ -1,8 +1,11 @@
-aa    aaa  
- aa   aaa    
- a    aaa        
+aa
+aa
+ a
 
-   a aaa 
-  aaaaaa
-  a  aaa
-   
+a
+aa
+
+aa
+aa
+aa
+aa
