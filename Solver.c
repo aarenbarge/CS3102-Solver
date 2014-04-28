@@ -133,6 +133,7 @@ ArrayList * solveWithRotations(char * file_name) {
 	ArrayList * pieces_array = findAllPieces(array, rows, row_length);
 	int * biggest = findAndRemoveLargestArray(pieces_array);
 	ArrayList * pieces = pieces_array->next;
+	debugPieces(biggest, pieces);
 	RotationList * r = createRotationList(pieces);
 	RotationList * t = r;
 	while(t!=NULL) {
@@ -143,8 +144,11 @@ ArrayList * solveWithRotations(char * file_name) {
 	if(solutions == NULL) {
 		printf("No solutions Found!\n");
 	}
+	printf("GOT HERE!!!!!!!!!!!\n");
 	int num_pieces = getNumberOfPieces(pieces);
+	printf("GOT HERE!!!!!!!!!!!\n");
 	ArrayList * readout = parseSolutionsList(solutions, num_pieces);
+	printf("GOT HERE!!!!!!!!!!!\n");
 	
 	debugSolutionList(readout, num_pieces);
 	return readout;
@@ -153,15 +157,16 @@ ArrayList * solveWithRotations(char * file_name) {
 SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, RotationList * pieces, SolutionList * most_recent, int ident) {
 	int width = *(biggest + 1);
 	int height = *(biggest + 0);
+	printf("\nfPSR called, biggest looks like this:\n\n");
+	print2DIntArray(biggest+2, width, height);
+	
 	int i = 0;
-
 	int piece_width = *(cur_array + 1);
 	int piece_height = *(cur_array + 0);
 	int id = ident;
 	while (i <= (height - piece_height)) {
 		int j = 0;
 		while(j <= (width - piece_width)) {
-			//int * a = cloneIntArray(biggest);
 			if(isAFit(biggest, cur_array, j, i)==0) {
 				negateValues(biggest, cur_array, j, i);
 				if(pieces->next != NULL) {
@@ -175,7 +180,6 @@ SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, Rota
 						most_recent->node = malloc(sizeof(SolutionNode));
 						most_recent->node->fields = NULL;
 						most_recent->node->first = NULL;
-						//RotationList * pmt = pieces;
 						SolutionList * partial_solution = findSolutionsRotations(biggest, pieces->next);
 						if(partial_solution == NULL) {
 							free(most_recent->node);
@@ -252,18 +256,26 @@ SolutionList * findSolutionsRotations(int * biggest, RotationList * pieces) {
 	int * hrro = pieces->hrro;
 	printf("o ");
 	if(o != NULL) {
+		printf("\n\n");
+		print2DIntArray(o+2, *(o+1), *o);
 		most_recent = findPartialSolutionRotations(biggest, o, pieces, most_recent, id);
 	}
 	printf("ho ");
 	if(ho != NULL) {
+		printf("\n\n");
+		print2DIntArray(ho+2, *(ho+1), *ho);
 		most_recent = findPartialSolutionRotations(biggest, ho, pieces, most_recent, id);
 	}
 	printf("rro ");
 	if(rro != NULL) {
+		printf("\n\n");
+		print2DIntArray(rro+2, *(rro+1), *rro);
 		most_recent = findPartialSolutionRotations(biggest, rro, pieces, most_recent, id);
 	}
 	printf("hrro ");
 	if(hrro != NULL) {
+		printf("\n\n");
+		print2DIntArray(hrro+2, *(hrro+1), *hrro);
 		most_recent = findPartialSolutionRotations(biggest, hrro, pieces, most_recent, id);
 	}
 	
@@ -274,19 +286,27 @@ SolutionList * findSolutionsRotations(int * biggest, RotationList * pieces) {
 	
 	printf("ro ");
 	if(ro != NULL) {
-		most_recent = findPartialSolutionRotations(biggest, o, pieces, most_recent, id);
+		printf("\n\n");
+		print2DIntArray(ro+2, *(ro+1), *ro);
+		most_recent = findPartialSolutionRotations(biggest, ro, pieces, most_recent, id);
 	}
 	printf("hro ");
 	if(hro != NULL) {
-		most_recent = findPartialSolutionRotations(biggest, o, pieces, most_recent, id);
+		printf("\n\n");
+		print2DIntArray(hro+2, *(hro+1), *hro);
+		most_recent = findPartialSolutionRotations(biggest, hro, pieces, most_recent, id);
 	}
 	printf("rrro ");
 	if(rrro != NULL) {
-		most_recent = findPartialSolutionRotations(biggest, o, pieces, most_recent, id);
+		printf("\n\n");
+		print2DIntArray(rrro+2, *(rrro+1), *rrro);
+		most_recent = findPartialSolutionRotations(biggest, rrro, pieces, most_recent, id);
 	}
 	printf("hrrro ");
 	if(hrrro != NULL) {
-		most_recent = findPartialSolutionRotations(biggest, o, pieces, most_recent, id);
+		printf("\n\n");
+		print2DIntArray(hrrro+2, *(hrrro+1), *hrrro);
+		most_recent = findPartialSolutionRotations(biggest, hrrro, pieces, most_recent, id);
 	}
 	
 	
@@ -396,21 +416,30 @@ int * rotateLeft(int * array) {
 }
 
 ArrayList * parseSolutionsList(SolutionList * solutions, int p) {
+	printf("1\n");
 	ArrayList * readout = malloc(sizeof(ArrayList));
+	printf("2\n");
 	if(solutions == NULL) {
+		printf("3\n");
 		return NULL;
 	}
 	else {
+		printf("4\n");
 		ArrayList * t = readSolutions(solutions, readout, p);
+		printf("5\n");
 		while(solutions != NULL) {
+			printf("6\n");
 			if(solutions->node->first == NULL) {
+				printf("7\n");
 				solutions = solutions->next;
 			}
 			else {
+				printf("8\n");
 				t = readSolutions(solutions, t, p);
 			}
 		}
 	}
+	printf("9\n");
 	return readout;
 }
 
