@@ -1,0 +1,8 @@
+aa    aaa  
+ aa   aaa    
+ a    aaa        
+
+   a aaa 
+  aaaaaa
+  a  aaa
+   
