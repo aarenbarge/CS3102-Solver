@@ -1,11 +1,10 @@
-aa
-aa
  a
+aaa
+  a
 
-a
-aa
+aaaa
+   a
 
-aa
-aa
-aa
-aa
+ a
+aaa   a
+  aaaaa
