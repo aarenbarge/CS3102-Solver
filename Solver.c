@@ -91,7 +91,7 @@ SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, Rota
 // Functions //
 //---------------------------------------------------------------//
 int main(int argc, char*argv[]) {
-	int rotate = 0;
+	int rotate = 1;
 	if(rotate != 1) {
 		ArrayList * solutions = solveNoRotations(argv[1]);
 	}
@@ -128,17 +128,13 @@ ArrayList * solveWithRotations(char * file_name) {
 	ArrayList * pieces_array = findAllPieces(array, rows, row_length);
 	int * biggest = findAndRemoveLargestArray(pieces_array);
 	ArrayList * pieces = pieces_array->next;
-	debugPieces(biggest, pieces);
+	//debugPieces(biggest, pieces);
 	RotationList * r = createRotationList(pieces);
 	RotationList * t = r;
-	printf("r->ro: %p\n", r->ro);
-	print2DIntArray(r->ro+2, *(r->ro+1), *(r->ro));
 	while(t!=NULL) {
 		removeIsometricRotations(t);
 		t = t->next;
 	}
-	printf("r->ro: %p\n", r->ro);
-	//print2DIntArray(r->ro+2, *(r->ro+1), *(r->ro));
 	SolutionList * solutions = findSolutionsRotations(biggest, r);
 	if(solutions == NULL) {
 		printf("No solutions Found!\n");
@@ -151,6 +147,14 @@ ArrayList * solveWithRotations(char * file_name) {
 	debugSolutionList(readout, num_pieces);
 	return readout;
 }
+
+void removeAllSolutionIsometries(ArrayList * list, int num) {
+	
+}
+
+
+
+
 
 SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, RotationList * pieces, SolutionList * most_recent, int ident, int rot) {
 	int width = *(biggest + 1);
