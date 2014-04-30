@@ -342,8 +342,6 @@ int areSame(int * array, int * temp, int num) {
 	return 1;
 }
 
-
-
 SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, RotationList * pieces, SolutionList * most_recent, int ident, int rot) {
 	int width = *(biggest + 1);
 	int height = *(biggest + 0);
