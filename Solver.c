@@ -77,7 +77,7 @@ SolutionList * findSolutionsRotations(int * biggest, RotationList * pieces);
 int * rotateLeft(int * array);
 int * flipHorizontal(int * array);
 RotationList * createRotationList(ArrayList * list);
-ArrayList * solveWithRotations(char * file_name);
+ArrayList * solveWithRotations(char * file_name, int rotation);
 void removeIsometricRotations(RotationList * t);
 void debugRotationsList(RotationList * r);
 SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, RotationList * pieces, SolutionList * most_recent, int ident, int rotation);
@@ -87,7 +87,8 @@ int areIsomorphic(int * array, int * temp, int num);
 int areSame(int * array, int * temp, int num);
 void removeNullSolutions(ArrayList * list);
 
-
+//Global Variable :(
+RotationList * all_rotations;
 
 
 
@@ -99,35 +100,11 @@ void removeNullSolutions(ArrayList * list);
 //---------------------------------------------------------------//
 int main(int argc, char*argv[]) {
 	int rotate = 1;
-	if(rotate != 1) {
-		ArrayList * solutions = solveNoRotations(argv[1]);
-	}
-	else {
-		ArrayList * solutions = solveWithRotations(argv[1]);
-	}
+	ArrayList * solutions = solveWithRotations(argv[1], rotate);
+	printf("here\n");
 }
 
-ArrayList * solveNoRotations(char * file_name) {
-	int * input_array = openFileIntoArray(file_name);
-	int rows = *(input_array + 0);
-	int row_length = *(input_array + 1);
-	int * array = (input_array + 2);
-	ArrayList * pieces_array = findAllPieces(array, rows, row_length);
-	int * biggest = findAndRemoveLargestArray(pieces_array);
-	ArrayList * pieces = pieces_array->next;
-	SolutionList * solutions = findSolutions(biggest, pieces);
-	if(solutions == NULL) {
-		printf("No solutions Found!\n");
-		return NULL;
-	}
-	int num_pieces = getNumberOfPieces(pieces);
-	ArrayList * readout = parseSolutionsList(solutions, num_pieces);
-	
-	debugSolutionList(readout, num_pieces);
-	return readout;
-}
-
-ArrayList * solveWithRotations(char * file_name) {
+ArrayList * solveWithRotations(char * file_name, int rotation) {
 	int * input_array = openFileIntoArray(file_name);
 	int rows = *(input_array + 0);
 	int row_length = *(input_array + 1);
@@ -138,41 +115,54 @@ ArrayList * solveWithRotations(char * file_name) {
 	//debugPieces(biggest, pieces);
 	RotationList * r = createRotationList(pieces);
 	RotationList * t = r;
-	while(t!=NULL) {
-		removeIsometricRotations(t);
-		t = t->next;
+	if(rotation == 1) {
+		while(t!=NULL) {
+			removeIsometricRotations(t);
+			t = t->next;
+		}
+	}
+	else {
+		while(t!=NULL) {
+			t->ho = NULL;
+			t->ro = NULL;
+			t->hro = NULL;
+			t->rro = NULL;
+			t->hrro = NULL;
+			t->rrro = NULL;
+			t->hrrro = NULL;
+			t = t->next;
+		}
 	}
 	SolutionList * solutions = findSolutionsRotations(biggest, r);
 	if(solutions == NULL) {
-		printf("No solutions Found!\n");
 		return NULL;
 	}
 	int num_pieces = getNumberOfPieces(pieces);
 
 	ArrayList * readout = parseSolutionsList(solutions, num_pieces);
 	
-	debugSolutionList(readout, num_pieces);
-	
-	printf("\n\n");
 	removeAllSolutionIsometries(readout, biggest, num_pieces, r);
-	printf("returned\n");
 	removeNullSolutions(readout);
-	printSolutionFromArrayList(readout, num_pieces);
+	removeAllSolutionIsometries(readout, biggest, num_pieces, r);
+	removeNullSolutions(readout);
+	all_rotations = r;
+	while(readout != NULL) {
+		readout = readout->next;
+	}
 	return readout;
 }
 
 void removeNullSolutions(ArrayList * list) {
-	ArrayList ** next = &(list->next);
+	ArrayList * last = list;
 	ArrayList * t = list->next;
 	while(t != NULL) {
 		if(t->array != NULL) {
-			printf("theres another here!\n");
-			*next = t;
-			next = &(t->next);
+			last->next = t;
+			last = t;
 		}
 		t = t->next;
 	}
-	*next = NULL;
+	last->next = NULL;
 }
 
 void removeAllSolutionIsometries(ArrayList * list, int * biggest, int num, RotationList * pieces) {
@@ -190,9 +180,7 @@ void removeAllSolutionIsometries(ArrayList * list, int * biggest, int num, Rotat
 				if(t->array != NULL) {
 					temp = initializeIntArray(t, temp, width, height, num, pieces);
 					if(areIsomorphic(anchor, temp, num) == 1) {
-						printf("temond1\n");
 						t->array = NULL;
-						printf("temond\n");
 					}
 				}
 				t = t->next;
@@ -271,6 +259,7 @@ int * initializeIntArray(ArrayList * list, int * array, int width, int height, i
 }
 
 int areIsomorphic(int * array, int * temp, int num) {
+	int to_return = 0;
 	int * ho = flipHorizontal(array);
 	int * ro = rotateLeft(array);
 	int * hro = flipHorizontal(ro);
@@ -279,119 +268,42 @@ int areIsomorphic(int * array, int * temp, int num) {
 	int * rrro = rotateLeft(rro);
 	int * hrrro = flipHorizontal(rrro);
 	if(areSame(array, temp, num) == 1) {
-		printf("returned from o\n");
-//		free(ho);
-//		free(ro);
-//		free(hro);
-//		free(rro);
-//		free(hrro);
-//		free(rrro);
-//		free(hrrro);
-		return 1;
+		to_return = 1;
 	}
 	else if(areSame(ho, temp, num) == 1) {
-		printf("returned from ho\n");
-		printf("%p\n", ho);
-//		free(ho);
-		printf("1\n");
-//		free(ro);
-		printf("1\n");
-//		free(hro);
-		printf("1\n");
-//		free(rro);
-		printf("1\n");
-//		free(hrro);
-		printf("1\n");
-//		free(rrro);
-		printf("1\n");
-//		free(hrrro);
-		printf("going to return from ho\n");
-		return 1;
+		to_return = 1;
 	}
 	else if(areSame(ro, temp, num) == 1) {
-		printf("returned from ro\n");
-//		free(ho);
-//		free(ro);
-//		free(hro);
-//		free(rro);
-//		free(hrro);
-//		free(rrro);
-//		free(hrrro);
-		return 1;
+		to_return = 1;
 	}
 	else if(areSame(hro, temp, num) == 1) {
-		printf("returned from hro\n");
-//		free(ho);
-//		free(ro);
-//		free(hro);
-//		free(rro);
-//		free(hrro);
-//		free(rrro);
-//		free(hrrro);
-		return 1;
+		to_return = 1;
 	}
 	else if(areSame(rro, temp, num) == 1) {
-		printf("returned from rro\n");
-//		free(ho);
-//		free(ro);
-//		free(hro);
-//		free(rro);
-//		free(hrro);
-//		free(rrro);
-//		free(hrrro);
-		return 1;
+		to_return = 1;
 	}
 	else if(areSame(hrro, temp, num) == 1) {
-		printf("returned from hrro\n");
-//		free(ho);
-//		free(ro);
-//		free(hro);
-//		free(rro);
-//		free(hrro);
-//		free(rrro);
-//		free(hrrro);
-		return 1;
+		to_return = 1;
 	}
 	else if(areSame(rrro, temp, num) == 1) {
-		printf("returned from rrro\n");
-//		free(ho);
-//		free(ro);
-//		free(hro);
-//		free(rro);
-//		free(hrro);
-//		free(rrro);
-//		free(hrrro);
-		return 1;
+		to_return = 1;
 	}
 	else if(areSame(hrrro, temp, num) == 1) {
-		printf("returned from hrrro\n");
-//		free(ho);
-//		free(ro);
-//		free(hro);
-//		free(rro);
-//		free(hrro);
-//		free(rrro);
-//		free(hrrro);
-		return 1;
+		to_return = 1;
 	}
-	else {
-		printf("returned from else\n");
-//		free(ho);
-//		free(ro);
-//		free(hro);
-//		free(rro);
-//		free(hrro);
-//		free(rrro);
-//		free(hrrro);
-		return 0;
-	}
+		ho = NULL;
+		ro = NULL;
+		hro = NULL;
+		rro = NULL;
+		hrro = NULL;
+		rrro = NULL;
+		hrrro = NULL;
+		return to_return;;
 }
 
 int areSame(int * array, int * temp, int num) {
-	printf("\narray:\n");
-	print2DIntArray(array + 2, *(array + 1), *(array));
-	printf("\ntemp:\n");
-	print2DIntArray(temp + 2, *(temp + 1), *temp);
+	if(array == NULL) {
+	}
 	int * check = malloc(num + 1);
 	int alt = 0;
 	while (alt < num + 1) {
@@ -419,7 +331,6 @@ int areSame(int * array, int * temp, int num) {
 				*(check + id) = *(temp + i*a_width + j);
 			}
 			else if(*(check + id) != *(temp + i*a_width + j)) {
-				printf("these were different at (%d,%d)\n", j,i);
 				return 0;
 			}
 			j++;
@@ -428,7 +339,6 @@ int areSame(int * array, int * temp, int num) {
 	}
 	
 	free(check);
-	printf("\nWere determined to be the same!\n");
 	return 1;
 }
 
