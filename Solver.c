@@ -81,6 +81,13 @@ ArrayList * solveWithRotations(char * file_name);
 void removeIsometricRotations(RotationList * t);
 void debugRotationsList(RotationList * r);
 SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, RotationList * pieces, SolutionList * most_recent, int ident, int rotation);
+void removeAllSolutionIsometries(ArrayList * list, int * biggest, int num, RotationList * pieces);
+int * initializeIntArray(ArrayList * list, int * array, int width, int height, int num, RotationList * pieces);
+int areIsomorphic(int * array, int * temp, int num);
+int areSame(int * array, int * temp, int num);
+void removeNullSolutions(ArrayList * list);
+
+
 
 
 
@@ -145,14 +152,285 @@ ArrayList * solveWithRotations(char * file_name) {
 	ArrayList * readout = parseSolutionsList(solutions, num_pieces);
 	
 	debugSolutionList(readout, num_pieces);
+	
+	printf("\n\n");
+	removeAllSolutionIsometries(readout, biggest, num_pieces, r);
+	printf("returned\n");
+	removeNullSolutions(readout);
+	printSolutionFromArrayList(readout, num_pieces);
 	return readout;
 }
 
-void removeAllSolutionIsometries(ArrayList * list, int num) {
-	
+void removeNullSolutions(ArrayList * list) {
+	ArrayList ** next = &(list->next);
+	ArrayList * t = list->next;
+	while(t != NULL) {
+		if(t->array != NULL) {
+			printf("theres another here!\n");
+			*next = t;
+			next = &(t->next);
+		}
+		t = t->next;
+	}
+	*next = NULL;
 }
 
+void removeAllSolutionIsometries(ArrayList * list, int * biggest, int num, RotationList * pieces) {
+	int i = 0;
+	int width = *(biggest + 1);
+	int height = *(biggest);
+	int * anchor = malloc(width * height * sizeof(int) + 2);
+	int * temp = malloc(width * height * sizeof(int) + 2);
+	while (list != NULL) {
+		if(list->array == NULL) {}
+		else {
+			anchor = initializeIntArray(list, anchor, width, height, num, pieces);
+			ArrayList * t = list->next;
+			while(t != NULL) {
+				if(t->array != NULL) {
+					temp = initializeIntArray(t, temp, width, height, num, pieces);
+					if(areIsomorphic(anchor, temp, num) == 1) {
+						printf("temond1\n");
+						t->array = NULL;
+						printf("temond\n");
+					}
+				}
+				t = t->next;
+			}
+		}
+		list = list->next;
+	}
+}
 
+int * initializeIntArray(ArrayList * list, int * array, int width, int height, int num, RotationList * pieces) {
+	int * to_return = array;
+	*(array) = height;
+	*(array + 1) = width;
+	array = array + 2;
+	int i = 0;
+	while(i < width * height) {
+		*(array + i) = 0;
+		i++;
+	}
+	i = 0;
+	int * a = list->array;
+	while(i < num) {
+		RotationList * r = pieces;
+		int Id = *(a+0);
+		int x = *(a+1);
+		int y = *(a+2);
+		int rot = *(a+3);
+		if(r->id != Id) {
+			while(r->id != Id) {
+				r = r->next;
+			}
+		}
+		int * the_piece;
+		if(rot == 1) {
+			the_piece = r->o;
+		}
+		if(rot == -1) {
+			the_piece = r->ho;
+		}
+		if(rot == 2) {
+			the_piece = r->ro;
+		}
+		if(rot == -2) {
+			the_piece = r->hro;
+		}
+		if(rot == 3) {
+			the_piece = r->rro;
+		}
+		if(rot == -3) {
+			the_piece = r->hrro;
+		}
+		if(rot == 4) {
+			the_piece = r->rrro;
+		}
+		if(rot == -4) {
+			the_piece = r->hrrro;
+		}
+		int piece_width = *(the_piece+1);
+		int piece_height = *(the_piece);
+		the_piece = the_piece + 2;
+		int m = 0;
+		while(m < piece_height) {
+			int n = 0;
+			while(n < piece_width) {
+				if(*(the_piece + m*piece_width + n)!=32){
+					*(array + (y + m)*width + (x + n)) = Id;
+				}
+				n++;
+			}
+			m++;
+		}
+		a = a + 4;
+		i++;
+	}
+	return to_return;
+}
+
+int areIsomorphic(int * array, int * temp, int num) {
+	int * ho = flipHorizontal(array);
+	int * ro = rotateLeft(array);
+	int * hro = flipHorizontal(ro);
+	int * rro = rotateLeft(ro);
+	int * hrro = flipHorizontal(rro);
+	int * rrro = rotateLeft(rro);
+	int * hrrro = flipHorizontal(rrro);
+	if(areSame(array, temp, num) == 1) {
+		printf("returned from o\n");
+//		free(ho);
+//		free(ro);
+//		free(hro);
+//		free(rro);
+//		free(hrro);
+//		free(rrro);
+//		free(hrrro);
+		return 1;
+	}
+	else if(areSame(ho, temp, num) == 1) {
+		printf("returned from ho\n");
+		printf("%p\n", ho);
+//		free(ho);
+		printf("1\n");
+//		free(ro);
+		printf("1\n");
+//		free(hro);
+		printf("1\n");
+//		free(rro);
+		printf("1\n");
+//		free(hrro);
+		printf("1\n");
+//		free(rrro);
+		printf("1\n");
+//		free(hrrro);
+		printf("going to return from ho\n");
+		return 1;
+	}
+	else if(areSame(ro, temp, num) == 1) {
+		printf("returned from ro\n");
+//		free(ho);
+//		free(ro);
+//		free(hro);
+//		free(rro);
+//		free(hrro);
+//		free(rrro);
+//		free(hrrro);
+		return 1;
+	}
+	else if(areSame(hro, temp, num) == 1) {
+		printf("returned from hro\n");
+//		free(ho);
+//		free(ro);
+//		free(hro);
+//		free(rro);
+//		free(hrro);
+//		free(rrro);
+//		free(hrrro);
+		return 1;
+	}
+	else if(areSame(rro, temp, num) == 1) {
+		printf("returned from rro\n");
+//		free(ho);
+//		free(ro);
+//		free(hro);
+//		free(rro);
+//		free(hrro);
+//		free(rrro);
+//		free(hrrro);
+		return 1;
+	}
+	else if(areSame(hrro, temp, num) == 1) {
+		printf("returned from hrro\n");
+//		free(ho);
+//		free(ro);
+//		free(hro);
+//		free(rro);
+//		free(hrro);
+//		free(rrro);
+//		free(hrrro);
+		return 1;
+	}
+	else if(areSame(rrro, temp, num) == 1) {
+		printf("returned from rrro\n");
+//		free(ho);
+//		free(ro);
+//		free(hro);
+//		free(rro);
+//		free(hrro);
+//		free(rrro);
+//		free(hrrro);
+		return 1;
+	}
+	else if(areSame(hrrro, temp, num) == 1) {
+		printf("returned from hrrro\n");
+//		free(ho);
+//		free(ro);
+//		free(hro);
+//		free(rro);
+//		free(hrro);
+//		free(rrro);
+//		free(hrrro);
+		return 1;
+	}
+	else {
+		printf("returned from else\n");
+//		free(ho);
+//		free(ro);
+//		free(hro);
+//		free(rro);
+//		free(hrro);
+//		free(rrro);
+//		free(hrrro);
+		return 0;
+	}
+}
+
+int areSame(int * array, int * temp, int num) {
+	printf("\narray:\n");
+	print2DIntArray(array + 2, *(array + 1), *(array));
+	printf("\ntemp:\n");
+	print2DIntArray(temp + 2, *(temp + 1), *temp);
+	int * check = malloc(num + 1);
+	int alt = 0;
+	while (alt < num + 1) {
+		*(check + alt) = 0;
+		alt++;
+	}
+	int a_width = *(array + 1);
+	int t_width = *(temp + 1);
+	if(a_width != t_width) {
+		return 0;
+	}
+	int a_height = *(array);
+	int t_height = *(temp);
+	if(a_height != t_height) {
+		return 0;
+	}
+	array += 2;
+	temp += 2;
+	int i = 0;
+	while(i < a_height) {
+		int j = 0;
+		while(j < a_width) {
+			int id = *(array + i*a_width + j);
+			if(*(check + id) == 0) {
+				*(check + id) = *(temp + i*a_width + j);
+			}
+			else if(*(check + id) != *(temp + i*a_width + j)) {
+				printf("these were different at (%d,%d)\n", j,i);
+				return 0;
+			}
+			j++;
+		}
+		i++;
+	}
+	
+	free(check);
+	printf("\nWere determined to be the same!\n");
+	return 1;
+}
 
 
 

@@ -1,34 +1,18 @@
 aa
-aa
+ aa
+ a
 
 aa
-aa
+ aa
+ a
 
 aa
-aa
+ aa
+ a
 
 aa
-aa
-
-aa
-aa
-
-aa
-aa
-
-aa
-aa
-
-aa
-aa
-
-aaaaaaaa
-aaaaaaaa
-aaaaaaaa
-aaaaaaaa
-
-
-
-
-
-
+ aaaa
+ a  aa
+aa  a
+ aa
+ a
