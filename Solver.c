@@ -133,6 +133,7 @@ ArrayList * solveWithRotations(char * file_name) {
 	ArrayList * pieces_array = findAllPieces(array, rows, row_length);
 	int * biggest = findAndRemoveLargestArray(pieces_array);
 	ArrayList * pieces = pieces_array->next;
+	debugPieces(biggest, pieces);
 	RotationList * r = createRotationList(pieces);
 	RotationList * t = r;
 	while(t!=NULL) {
