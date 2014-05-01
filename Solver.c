@@ -80,7 +80,7 @@ RotationList * createRotationList(ArrayList * list);
 ArrayList * solveWithRotations(char * file_name);
 void removeIsometricRotations(RotationList * t);
 void debugRotationsList(RotationList * r);
-SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, RotationList * pieces, SolutionList * most_recent, int ident, int rotation);
+SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, RotationList * pieces, SolutionList * most_recent, int ident);
 
 
 
@@ -91,7 +91,7 @@ SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, Rota
 // Functions //
 //---------------------------------------------------------------//
 int main(int argc, char*argv[]) {
-	int rotate = 0;
+	int rotate = 1;
 	if(rotate != 1) {
 		ArrayList * solutions = solveNoRotations(argv[1]);
 	}
@@ -108,11 +108,9 @@ ArrayList * solveNoRotations(char * file_name) {
 	ArrayList * pieces_array = findAllPieces(array, rows, row_length);
 	int * biggest = findAndRemoveLargestArray(pieces_array);
 	ArrayList * pieces = pieces_array->next;
-	debugPieces(biggest, pieces);
 	SolutionList * solutions = findSolutions(biggest, pieces);
 	if(solutions == NULL) {
 		printf("No solutions Found!\n");
-		return NULL;
 	}
 	int num_pieces = getNumberOfPieces(pieces);
 	ArrayList * readout = parseSolutionsList(solutions, num_pieces);
@@ -120,6 +118,12 @@ ArrayList * solveNoRotations(char * file_name) {
 	debugSolutionList(readout, num_pieces);
 	return readout;
 }
+
+
+
+
+
+
 
 ArrayList * solveWithRotations(char * file_name) {
 	int * input_array = openFileIntoArray(file_name);
@@ -129,41 +133,35 @@ ArrayList * solveWithRotations(char * file_name) {
 	ArrayList * pieces_array = findAllPieces(array, rows, row_length);
 	int * biggest = findAndRemoveLargestArray(pieces_array);
 	ArrayList * pieces = pieces_array->next;
-	debugPieces(biggest, pieces);
 	RotationList * r = createRotationList(pieces);
 	RotationList * t = r;
-	printf("r->ro: %p\n", r->ro);
-	print2DIntArray(r->ro+2, *(r->ro+1), *(r->ro));
 	while(t!=NULL) {
 		removeIsometricRotations(t);
 		t = t->next;
 	}
-	printf("r->ro: %p\n", r->ro);
-	//print2DIntArray(r->ro+2, *(r->ro+1), *(r->ro));
 	SolutionList * solutions = findSolutionsRotations(biggest, r);
 	if(solutions == NULL) {
 		printf("No solutions Found!\n");
-		return NULL;
 	}
 	int num_pieces = getNumberOfPieces(pieces);
-
 	ArrayList * readout = parseSolutionsList(solutions, num_pieces);
 	
 	debugSolutionList(readout, num_pieces);
 	return readout;
 }
 
-SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, RotationList * pieces, SolutionList * most_recent, int ident, int rot) {
+SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, RotationList * pieces, SolutionList * most_recent, int ident) {
 	int width = *(biggest + 1);
 	int height = *(biggest + 0);
-	
 	int i = 0;
+
 	int piece_width = *(cur_array + 1);
 	int piece_height = *(cur_array + 0);
 	int id = ident;
 	while (i <= (height - piece_height)) {
 		int j = 0;
 		while(j <= (width - piece_width)) {
+			//int * a = cloneIntArray(biggest);
 			if(isAFit(biggest, cur_array, j, i)==0) {
 				negateValues(biggest, cur_array, j, i);
 				if(pieces->next != NULL) {
@@ -177,17 +175,17 @@ SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, Rota
 						most_recent->node = malloc(sizeof(SolutionNode));
 						most_recent->node->fields = NULL;
 						most_recent->node->first = NULL;
+						//RotationList * pmt = pieces;
 						SolutionList * partial_solution = findSolutionsRotations(biggest, pieces->next);
 						if(partial_solution == NULL) {
 							free(most_recent->node);
 							most_recent->node = NULL;
 						}
 						else {
-							most_recent->node->fields = malloc(4 * sizeof(int));
+							most_recent->node->fields = malloc(3 * sizeof(int));
 							*(most_recent->node->fields) = id;
 							*(most_recent->node->fields + 1) = j;
 							*(most_recent->node->fields + 2) = i;
-							*(most_recent->node->fields + 3) = rot;
 							most_recent->node->first = malloc(sizeof(PointerList));
 							most_recent->node->first->next = NULL;
 							most_recent->node->first->solution = NULL;
@@ -197,11 +195,11 @@ SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, Rota
 								if(partial_solution->next == NULL) {
 									done = 1;
 								}
-								if(cur_ptr->solution == NULL && partial_solution->node != NULL){
+								if(cur_ptr->solution == NULL){
 									cur_ptr->solution = partial_solution->node;
 									cur_ptr->next = NULL;
 								}
-								else if(partial_solution->node != NULL) {
+								else {
 									cur_ptr->next = malloc(sizeof(PointerList));
 									cur_ptr = cur_ptr->next;
 									cur_ptr->solution = partial_solution->node;
@@ -223,11 +221,10 @@ SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, Rota
 						most_recent->next = NULL;
 					}
 					most_recent->node = malloc(sizeof(SolutionNode));
-					most_recent->node->fields = malloc(4 * sizeof(int));
+					most_recent->node->fields = malloc(3 * sizeof(int));
 					*(most_recent->node->fields) = id;
 					*(most_recent->node->fields + 1) = j;
 					*(most_recent->node->fields + 2) = i;
-					*(most_recent->node->fields + 3) = rot;
 					most_recent->node->first = NULL;
 					negateValues(biggest, cur_array, j, i);
 				}
@@ -253,17 +250,21 @@ SolutionList * findSolutionsRotations(int * biggest, RotationList * pieces) {
 	int * ho = pieces->ho;
 	int * rro = pieces->rro;
 	int * hrro = pieces->hrro;
+	printf("o ");
 	if(o != NULL) {
-		most_recent = findPartialSolutionRotations(biggest, o, pieces, most_recent, id, 1);
+		most_recent = findPartialSolutionRotations(biggest, o, pieces, most_recent, id);
 	}
+	printf("ho ");
 	if(ho != NULL) {
-		most_recent = findPartialSolutionRotations(biggest, ho, pieces, most_recent, id, -1);
+		most_recent = findPartialSolutionRotations(biggest, ho, pieces, most_recent, id);
 	}
+	printf("rro ");
 	if(rro != NULL) {
-		most_recent = findPartialSolutionRotations(biggest, rro, pieces, most_recent, id, 3);
+		most_recent = findPartialSolutionRotations(biggest, rro, pieces, most_recent, id);
 	}
+	printf("hrro ");
 	if(hrro != NULL) {
-		most_recent = findPartialSolutionRotations(biggest, hrro, pieces, most_recent, id, -3);
+		most_recent = findPartialSolutionRotations(biggest, hrro, pieces, most_recent, id);
 	}
 	
 	int * ro = pieces->ro;
@@ -271,19 +272,25 @@ SolutionList * findSolutionsRotations(int * biggest, RotationList * pieces) {
 	int * rrro = pieces->rrro;
 	int * hrrro = pieces->hrrro;
 	
+	printf("ro ");
 	if(ro != NULL) {
-		most_recent = findPartialSolutionRotations(biggest, ro, pieces, most_recent, id, 2);
+		most_recent = findPartialSolutionRotations(biggest, o, pieces, most_recent, id);
 	}
+	printf("hro ");
 	if(hro != NULL) {
-		most_recent = findPartialSolutionRotations(biggest, hro, pieces, most_recent, id, -2);
+		most_recent = findPartialSolutionRotations(biggest, o, pieces, most_recent, id);
 	}
+	printf("rrro ");
 	if(rrro != NULL) {
-		most_recent = findPartialSolutionRotations(biggest, rrro, pieces, most_recent, id, 4);
+		most_recent = findPartialSolutionRotations(biggest, o, pieces, most_recent, id);
 	}
+	printf("hrrro ");
 	if(hrrro != NULL) {
-		most_recent = findPartialSolutionRotations(biggest, hrrro, pieces, most_recent, id, -4);
+		most_recent = findPartialSolutionRotations(biggest, o, pieces, most_recent, id);
 	}
-
+	
+	
+	printf("\n");
 	if(first->node == NULL) {
 		free(first);
 		return NULL;
@@ -292,6 +299,8 @@ SolutionList * findSolutionsRotations(int * biggest, RotationList * pieces) {
 		return first;
 	}
 }
+
+
 
 void removeIsometricRotations(RotationList * t) {
 	if(isAFit(t->hrrro,t->rrro,0,0)==0 || isAFit(t->hrrro,t->hro,0,0)==0 || isAFit(t->hrrro,t->ro,0,0)==0 ||
@@ -388,18 +397,16 @@ int * rotateLeft(int * array) {
 
 ArrayList * parseSolutionsList(SolutionList * solutions, int p) {
 	ArrayList * readout = malloc(sizeof(ArrayList));
-	readout->array = NULL;
-	readout->next = NULL;
 	if(solutions == NULL) {
 		return NULL;
 	}
 	else {
 		ArrayList * t = readSolutions(solutions, readout, p);
-		while(solutions != NULL && solutions->node != NULL) {
+		while(solutions != NULL) {
 			if(solutions->node->first == NULL) {
 				solutions = solutions->next;
 			}
-			else if(solutions->node != NULL){
+			else {
 				t = readSolutions(solutions, t, p);
 			}
 		}
@@ -419,8 +426,8 @@ void printSolutionFromArrayList(ArrayList * soln, int num) {
 	int i = 0;
 	int * temp = soln->array;
 	while(i < num) {
-		printf("%d %d %d %d\n", *(temp),*(temp+1),*(temp+2),*(temp + 3));
-		temp = temp + 4;
+		printf("%d %d %d\n", *(temp),*(temp+1),*(temp+2));
+		temp = temp + 3;
 		i++;
 	}
 }
@@ -437,34 +444,33 @@ ArrayList * readSolutions(SolutionList * solutions, ArrayList * list, int num) {
 			list = list->next;
 		}
 	}
-	list->array = malloc(4 * num * sizeof(int));
+	list->array = malloc(3 * num * sizeof(int));
 	int * temp = list->array;
 	SolutionNode * node = solutions->node;
 	PointerList ** f;
-	while(node != NULL && node->first != NULL) {
+	while(node->first != NULL) {
 		*(temp) = *(node->fields);
 		*(temp+1) = *(node->fields + 1);
 		*(temp+2) = *(node->fields + 2);
-		*(temp+3) = *(node->fields + 3);
-		temp = temp + 4;
+		temp = temp + 3;
 		f = &(node->first);
-		
 		while((*f)->next != NULL) {
 			f = &((*f)->next);
 		}
 		node = (*f)->solution;
 	}
-	if(node == NULL) {}
-	else if(*(node->fields) == num) {
+	if(*(node->fields) == num) {
 		*(temp) = *(node->fields);
 		*(temp + 1) = *(node->fields + 1);
 		*(temp + 2) = *(node->fields + 2);
-		*(temp + 3) = *(node->fields + 3);
 	}
 	else {
 		free(list->array);
 		list->array = NULL;
 	}
+	
+	//free stuff
+	//free(f);
 	*f = NULL;
 	
 	return list;
@@ -480,6 +486,7 @@ int getNumberOfPieces(ArrayList * pieces) {
 }
 
 SolutionList * findSolutions(int * biggest, ArrayList * pieces) {
+//	printf("Called find Solutions on biggest: %p, pieces: %p\n", biggest, pieces);
 	int width = *(biggest + 1);
 	int height = *(biggest + 0);
 	int i = 0;
@@ -487,45 +494,75 @@ SolutionList * findSolutions(int * biggest, ArrayList * pieces) {
 	int piece_width = *(cur_array + 1);
 	int piece_height = *(cur_array + 0);
 	int id = pieces->id;
+//	printf("Biggest Width: %d, Height: %d, Smallest Width: %d, Height: %d\n", width, height, piece_width, piece_height);	
+//	printf("\nThis is what the puzzle looks like now\n\n");
+//	print2DIntArray(biggest+2, *(biggest+1), *(biggest));
+//	printf("\n\n");
 	SolutionList * first = malloc(sizeof(SolutionList));
+//	printf("Created the solution list that I'll return with address: %p\n", first);
 	first->node = NULL;
 	first->next = NULL;
 	SolutionList * most_recent = first;
+//	printf("To confirm, the variable pointer most_recent has address: %p\n", most_recent);
+	
 	while (i <= (height - piece_height)) {
 		int j = 0;
 		while(j <= (width - piece_width)) {
+//			printf("Inside the loop i: %d, j: %d\n\n",i,j);
+//			print2DIntArray(biggest+2, *(biggest+1), *(biggest));
 			int * a = cloneIntArray(biggest);
 			if(isAFit(biggest, cur_array, j, i)==0) {
+//				printf("We found a match!\n\n");
 				negateValues(biggest, cur_array, j, i);
+//				printf("After the values have been negated: \n");
+//				print2DIntArray(biggest+2, *(biggest+1), *(biggest));
+//				printf("\n");
 				if(pieces->next != NULL) {
+//					printf("Good thing there is another piece to try next!\n");
 					if(most_recent->node != NULL) {
+//						printf("This must not have been the first match found!\n");
 						most_recent->next = malloc(sizeof(SolutionList));
+//						printf("I have just allocated space for the next solution list: %p\n", most_recent->next);
 						most_recent = most_recent->next;
+//						printf("And I have incremented most_recent: %p\n", most_recent);
 						most_recent->node = NULL;
 						most_recent->next = NULL;
+//						printf("To make sure these pointers are NULL: %p %p\n", most_recent->node, most_recent->next);
 					}
 					if(most_recent->node == NULL) {
+//						printf("Now we are on the right most_recent!!\n");
 						most_recent->node = malloc(sizeof(SolutionNode));
+//						printf("Ive just allocated space for the node: %p\n", most_recent->node);
 						most_recent->node->fields = NULL;
 						most_recent->node->first = NULL;
 						ArrayList * pmt = pieces;
+//						printf("Now I'll be calling to find the solutions of the subproblem starting with %p\n", pieces->next);
 						SolutionList * partial_solution = findSolutions(biggest, pieces->next);
+//						printf("Just reterned from that subproblem and back in the frame of ID: %d\n", id);
 						if(partial_solution == NULL) {
+//							printf("No solutions were found from this point, we need to clear the node of most_recent\n");
+//							printf("%p was Null\n", partial_solution);
 							free(most_recent->node);
 							most_recent->node = NULL;
+//							printf("To check that we've cleared it: %p\n", most_recent->node);
 						}
 						else {
-							most_recent->node->fields = malloc(4 * sizeof(int));
+//							printf("There were solutions found under this point\n");
+//							printf("We need to record the position of this piece\n");
+							most_recent->node->fields = malloc(3 * sizeof(int));
+//							printf("I've just allocated memory for these fields: %p\n", most_recent->node->fields);
 							*(most_recent->node->fields) = id;
 							*(most_recent->node->fields + 1) = j;
 							*(most_recent->node->fields + 2) = i;
-							*(most_recent->node->fields + 3) = 1;
+//							printf("To check that ive done all this properly id=%d x=%d y=%d\n", *(most_recent->node->fields), *(most_recent->node->fields + 1), *(most_recent->node->fields + 2));
 							most_recent->node->first = malloc(sizeof(PointerList));
+//							printf("Now time for the tricky business of the pointerlist to other\n");
 							most_recent->node->first->next = NULL;
 							most_recent->node->first->solution = NULL;
 							PointerList * cur_ptr = most_recent->node->first;
 							int done = 0;
 							while(done == 0) {
+//								printf("partial_solution->next: %p\n", partial_solution->next);
 								if(partial_solution->next == NULL) {
 									done = 1;
 								}
@@ -555,12 +592,12 @@ SolutionList * findSolutions(int * biggest, ArrayList * pieces) {
 						most_recent->next = NULL;
 					}
 					most_recent->node = malloc(sizeof(SolutionNode));
-					most_recent->node->fields = malloc(4 * sizeof(int));
+					most_recent->node->fields = malloc(3 * sizeof(int));
 					*(most_recent->node->fields) = id;
 					*(most_recent->node->fields + 1) = j;
 					*(most_recent->node->fields + 2) = i;
-					*(most_recent->node->fields + 3) = 1;
 					most_recent->node->first = NULL;
+//					printf("\n\nCREATED A NEW FIELDS: %d %d %d\n", id, j, i);
 					negateValues(biggest, cur_array, j, i);
 				}
 			}
@@ -568,11 +605,14 @@ SolutionList * findSolutions(int * biggest, ArrayList * pieces) {
 		}
 		i++;
 	}
+//	printf("returned from id: %d ", id);
 	if(first->node == NULL) {
+//		printf("with NULL\n");
 		free(first);
 		return NULL;
 	}
 	else {
+//		printf("valid\n");
 		return first;
 	}
 }
@@ -610,11 +650,6 @@ int isAFit(int * biggest, int * smaller, int x, int y) {
 	smaller = smaller + 2;
 	biggest = biggest + 2;
 	int ruined = 0;
-	
-	if(small_height > big_height || small_width > big_width) {
-		return 1;
-	}
-	
 	while(i < small_width && ruined==0) {
 		int j = 0;
 		while( j < small_height && ruined==0) {
