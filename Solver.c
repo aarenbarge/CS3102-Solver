@@ -86,6 +86,8 @@ int * initializeIntArray(ArrayList * list, int * array, int width, int height, i
 int areIsomorphic(int * array, int * temp, int num);
 int areSame(int * array, int * temp, int num);
 void removeNullSolutions(ArrayList * list);
+ArrayList * finalize(ArrayList * readout, RotationList * r, int * biggest, int num);
+void write2DIntArrayToFile(FILE * f, int * array);
 
 //Global Variable :(
 RotationList * all_rotations;
@@ -99,9 +101,15 @@ RotationList * all_rotations;
 // Functions //
 //---------------------------------------------------------------//
 int main(int argc, char*argv[]) {
-	int rotate = 1;
+	int rotate = 0;
+	if(argc > 2) {
+		int arg = atoi( argv[2] );
+		if(arg == 1) {
+			rotate = 1;
+		}
+	}
+	printf("rotated: %d\n", rotate);
 	ArrayList * solutions = solveWithRotations(argv[1], rotate);
-	printf("here\n");
 }
 
 ArrayList * solveWithRotations(char * file_name, int rotation) {
@@ -112,7 +120,7 @@ ArrayList * solveWithRotations(char * file_name, int rotation) {
 	ArrayList * pieces_array = findAllPieces(array, rows, row_length);
 	int * biggest = findAndRemoveLargestArray(pieces_array);
 	ArrayList * pieces = pieces_array->next;
-	//debugPieces(biggest, pieces);
+	debugPieces(biggest, pieces);
 	RotationList * r = createRotationList(pieces);
 	RotationList * t = r;
 	if(rotation == 1) {
@@ -135,6 +143,14 @@ ArrayList * solveWithRotations(char * file_name, int rotation) {
 	}
 	SolutionList * solutions = findSolutionsRotations(biggest, r);
 	if(solutions == NULL) {
+		FILE * file = fopen("c_output.txt", "w");
+		if (file == NULL)
+		{
+		    printf("Error opening file!\n");
+		    exit(1);
+		}
+		fprintf(file, "0\n");
+		fclose(file);
 		return NULL;
 	}
 	int num_pieces = getNumberOfPieces(pieces);
@@ -146,10 +162,132 @@ ArrayList * solveWithRotations(char * file_name, int rotation) {
 	removeAllSolutionIsometries(readout, biggest, num_pieces, r);
 	removeNullSolutions(readout);
 	all_rotations = r;
+	ArrayList * returnable = finalize(readout, r, biggest, num_pieces);
+	
+	FILE * file = fopen("c_output.txt", "w");
+	if (file == NULL)
+	{
+	    printf("Error opening file!\n");
+	    exit(1);
+	}
+	
+	int num_solutions = 0;
+	ArrayList * templist = returnable;
+	while(templist != NULL) {
+		num_solutions++;
+		templist = templist->next;
+	}
+	
+	fprintf(file, "%d\n", num_solutions);
+	fprintf(file, "%d %d\n", *(biggest + 1), *(biggest));
+	
+	while(returnable != NULL) {
+		write2DIntArrayToFile(file, returnable->array);
+		fprintf(file, "\n");
+		returnable = returnable->next;
+	}
+	
+	fclose(file);
+	
+	return readout;
+}
+
+void write2DIntArrayToFile(FILE * f, int * array) {
+	int width = *(array + 1);
+	int height = *array;
+	array = array+2;
+	int i = 0;
+	while(i < height) {
+		int j = 0;
+		while(j < width) {
+			fprintf(f, "%d ", *(array + i*width + j));
+			j++;
+		} 
+		fprintf(f, "\n");
+		i++;
+	}
+}
+
+ArrayList * finalize(ArrayList * readout, RotationList * pieces, int * biggest, int num) {
+	int width = *(biggest + 1);
+	int height = *(biggest);
+	ArrayList * to_return = malloc(sizeof(ArrayList));
+	ArrayList * start = to_return;
+	to_return->next = NULL;
+	to_return->array = NULL;
 	while(readout != NULL) {
+		if(to_return->array != NULL) {
+			to_return->next = malloc(sizeof(ArrayList));
+			to_return = to_return->next;
+			to_return->next = NULL;
+			to_return->array = NULL;
+		}
+		int * a = readout->array;
+		to_return->array = malloc( ( width * height + 2 ) * sizeof(int));
+		int i = 0;
+		while ( i < width * height + 2) {
+			*(to_return->array + i) = 0;
+			i++;
+		}
+		*(to_return->array)=height;
+		*(to_return->array + 1)=width;
+		int * ar = to_return->array + 2;
+		
+		i=0;
+		while(i<num) {
+			RotationList * r = pieces;
+			int Id = *(a+0);
+			int x = *(a+1);
+			int y = *(a+2);
+			int rot = *(a+3);
+			while(r->id != Id) {
+				r = r->next;
+			}
+			int * the_piece;
+			if(rot == 1) {
+				the_piece = r->o;
+			}
+			if(rot == -1) {
+				the_piece = r->ho;
+			}
+			if(rot == 2) {
+				the_piece = r->ro;
+			}
+			if(rot == -2) {
+				the_piece = r->hro;
+			}
+			if(rot == 3) {
+				the_piece = r->rro;
+			}
+			if(rot == -3) {
+				the_piece = r->hrro;
+			}
+			if(rot == 4) {
+				the_piece = r->rrro;
+			}
+			if(rot == -4) {
+				the_piece = r->hrrro;
+			}
+			int piece_width = *(the_piece+1);
+			int piece_height = *(the_piece);
+			the_piece = the_piece + 2;
+			int m = 0;
+			while(m < piece_height) {
+				int n = 0;
+				while(n < piece_width) {
+					if(*(the_piece + m*piece_width + n)!=32){
+						*(ar + (y + m)*width + (x + n)) = Id;
+					}
+					n++;
+				}
+				m++;
+			}
+			a = a + 4;
+			i++;
+		}
 		readout = readout->next;
 	}
-	return readout;
+	return start;
 }
 
 void removeNullSolutions(ArrayList * list) {
