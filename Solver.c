@@ -89,6 +89,10 @@ ArrayList * finalize(ArrayList * readout, RotationList * r, int * biggest, int n
 void write2DIntArrayToFile(FILE * f, int * array);
 int getPieceSize(int * array);
 void writeNullSolFile();
+int prune(int * biggest, RotationList * pieces);
+int getNumNeighbors(int * array, int index);
+int not_empty(int * array);
+
 
 //Global Variable :(
 RotationList * all_rotations;
@@ -540,7 +544,85 @@ int areSame(int * array, int * temp, int num) {
 	return 1;
 }
 
+int prune(int * biggest, RotationList * pieces) {
+	int small = 10000;
+	while(pieces != NULL) {
+		int temp = getPieceSize(pieces->o);
+		if(temp < small) {
+			small = temp;
+		}
+		pieces = pieces->next;
+	}
+	int * temp_array = cloneIntArray(biggest);
+	while(not_empty(temp_array) == 1) {
+		int * it = temp_array + 2;
+		int index = 0;
+		while(*(it) < 0 || *it == 32) {
+			index++;
+			it = it + 1;
+		}
+		int x = getNumNeighbors(temp_array, index);
+		if(x < small) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int getNumNeighbors(int * array, int index) {
+	int width = *(array + 1);
+	int height = *(array);
+	int y = index / width;
+	int x = index - y*width;
+	int a = 0;
+	int b = 0;
+	int c = 0;
+	int d = 0;
+	*(array + index + 2) = -1 * (*(array + index + 2));
+	if(x > 0) {
+		if(*(array + y*width + (x-1)) > 0 && *(array + y*width + (x-1)) != 32 ) {
+			int a = getNumNeighbors(array,y*width+(x-1));
+		}
+	}
+	if(y > 0) {
+		if(*(array + (y-1)*width + x) > 0 && *(array + (y-1)*width + x) != 32 ) {
+			int b = getNumNeighbors(array,(y-1)*width+(x));
+		}
+	}
+	if(x < width - 1) {
+		if(*(array + y*width + (x+1)) > 0 && *(array + y*width + (x+1)) != 32 ) {
+			int c = getNumNeighbors(array,y*width+(x+1));
+		}
+	}
+	if(y < height - 1) {
+		if(*(array + (y+1)*width + x) > 0 && *(array + (y+1)*width + x) != 32 ) {
+			int d = getNumNeighbors(array,(y+1)*width+(x));
+		}
+	}
+	return 1 + a + b + c + d;
+}
+
+int not_empty(int * array) {
+	int to_return = 0;
+	int width = *(array + 1);
+	int height = *(array);
+	int i = 0;
+	while(i < width * height) {
+		if(*(array + i) > 0 && *(array + i) != 32) {
+			return 1;
+		}
+		i++;
+	}
+	return 0;
+}
+
 SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, RotationList * pieces, SolutionList * most_recent, int ident, int rot) {
+	
+	if(prune(biggest, pieces)==0) {
+		printf("pruned bitch!\n");
+		return NULL;
+	}
+	
 	int width = *(biggest + 1);
 	int height = *(biggest + 0);
 	
