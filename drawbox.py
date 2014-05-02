@@ -64,6 +64,14 @@ for x in range(0,num):              # Begin loop, loop through all solutions ($n
                             draw.line((n*size+buff,y*size+buff,(n+1)*size+buff,y*size+buff),fill=128)
                         if value != values[y][n-1]:
                             draw.line((n*size+buff,y*size+buff,n*size+buff,(y+1)*size+buff),fill=128)
+                if n == 0:
+                    if y != 0:
+                        if value != values[y-1][n]:
+                            draw.line((n*size+buff,y*size+buff,(n+1)*size+buff,y*size+buff),fill=128)
+                if y == 0:
+                    if n != 0:
+                        if value != values[y][n-1]:
+                            draw.line((n*size+buff,y*size+buff,n*size+buff,(y+1)*size+buff),fill=128)
     im.show()       #Show the image
                     
                     
