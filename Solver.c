@@ -10,8 +10,7 @@ typedef struct Point {
    struct Point * next;
 } Point;
 typedef struct ArrayList {
-	int id;
-	int rotation;
+	int * id;
 	int * array;
 	struct ArrayList * next;
 } ArrayList;
@@ -88,6 +87,8 @@ int areSame(int * array, int * temp, int num);
 void removeNullSolutions(ArrayList * list);
 ArrayList * finalize(ArrayList * readout, RotationList * r, int * biggest, int num);
 void write2DIntArrayToFile(FILE * f, int * array);
+int getPieceSize(int * array);
+void writeNullSolFile();
 
 //Global Variable :(
 RotationList * all_rotations;
@@ -101,6 +102,14 @@ RotationList * all_rotations;
 // Functions //
 //---------------------------------------------------------------//
 int main(int argc, char*argv[]) {
+	
+	FILE * test = fopen(argv[1], "a+");
+	size_t size = ftell(test);
+	if(size == 0) {
+		writeNullSolFile();
+		return -1;
+	}
+	
 	int rotate = 0;
 	if(argc > 2) {
 		int arg = atoi( argv[2] );
@@ -113,6 +122,7 @@ int main(int argc, char*argv[]) {
 }
 
 ArrayList * solveWithRotations(char * file_name, int rotation) {
+	
 	int * input_array = openFileIntoArray(file_name);
 	int rows = *(input_array + 0);
 	int row_length = *(input_array + 1);
@@ -120,7 +130,28 @@ ArrayList * solveWithRotations(char * file_name, int rotation) {
 	ArrayList * pieces_array = findAllPieces(array, rows, row_length);
 	int * biggest = findAndRemoveLargestArray(pieces_array);
 	ArrayList * pieces = pieces_array->next;
-	debugPieces(biggest, pieces);
+	
+	int total_num = getPieceSize(biggest);
+	ArrayList * to_get = pieces;
+	int other = 0;
+	while(to_get != NULL) {
+		other += getPieceSize(to_get->array);
+		to_get = to_get->next;
+	}
+
+	if(other != total_num) {
+		FILE * file = fopen("c_output.txt", "w");
+		if (file == NULL)
+		{
+		    printf("Error opening file!\n");
+		    exit(1);
+		}
+		fprintf(file, "0\n");
+		fclose(file);
+		return NULL;
+	}
+	
+	//debugPieces(biggest, pieces);
 	RotationList * r = createRotationList(pieces);
 	RotationList * t = r;
 	if(rotation == 1) {
@@ -141,6 +172,7 @@ ArrayList * solveWithRotations(char * file_name, int rotation) {
 			t = t->next;
 		}
 	}
+	
 	SolutionList * solutions = findSolutionsRotations(biggest, r);
 	if(solutions == NULL) {
 		FILE * file = fopen("c_output.txt", "w");
@@ -156,7 +188,6 @@ ArrayList * solveWithRotations(char * file_name, int rotation) {
 	int num_pieces = getNumberOfPieces(pieces);
 
 	ArrayList * readout = parseSolutionsList(solutions, num_pieces);
-	
 	removeAllSolutionIsometries(readout, biggest, num_pieces, r);
 	removeNullSolutions(readout);
 	removeAllSolutionIsometries(readout, biggest, num_pieces, r);
@@ -180,7 +211,6 @@ ArrayList * solveWithRotations(char * file_name, int rotation) {
 	
 	fprintf(file, "%d\n", num_solutions);
 	fprintf(file, "%d %d\n", *(biggest + 1), *(biggest));
-	
 	while(returnable != NULL) {
 		write2DIntArrayToFile(file, returnable->array);
 		fprintf(file, "\n");
@@ -190,6 +220,36 @@ ArrayList * solveWithRotations(char * file_name, int rotation) {
 	fclose(file);
 	
 	return readout;
+}
+
+void writeNullSolFile() {
+	FILE * file = fopen("c_output.txt", "w");
+	if (file == NULL)
+	{
+	    printf("Error opening file!\n");
+	    exit(1);
+	}
+	fprintf(file, "0\n");
+	fclose(file);
+}
+
+int getPieceSize(int * array) {
+	int width = *(array + 1);
+	int height = *(array);
+	array = array + 2;
+	int i = 0;
+	int count = 0;
+	while(i < width) {
+		int j = 0;
+		while(j < height) {
+			if (*(array + j*width + i) != 32) {
+				count++;
+			}
+			j++;
+		}
+		i++;
+	}
+	return count;
 }
 
 void write2DIntArrayToFile(FILE * f, int * array) {
@@ -240,7 +300,7 @@ ArrayList * finalize(ArrayList * readout, RotationList * pieces, int * biggest, 
 			int x = *(a+1);
 			int y = *(a+2);
 			int rot = *(a+3);
-			while(r->id != Id) {
+			while((r->id) != Id) {
 				r = r->next;
 			}
 			int * the_piece;
@@ -346,8 +406,8 @@ int * initializeIntArray(ArrayList * list, int * array, int width, int height, i
 		int x = *(a+1);
 		int y = *(a+2);
 		int rot = *(a+3);
-		if(r->id != Id) {
-			while(r->id != Id) {
+		if((r->id) != Id) {
+			while((r->id) != Id) {
 				r = r->next;
 			}
 		}
@@ -442,7 +502,7 @@ int areIsomorphic(int * array, int * temp, int num) {
 int areSame(int * array, int * temp, int num) {
 	if(array == NULL) {
 	}
-	int * check = malloc(num + 1);
+	int * check = malloc((num + 1)*sizeof(int));
 	int alt = 0;
 	while (alt < num + 1) {
 		*(check + alt) = 0;
@@ -475,8 +535,8 @@ int areSame(int * array, int * temp, int num) {
 		}
 		i++;
 	}
-	
 	free(check);
+	check=NULL;
 	return 1;
 }
 
@@ -574,7 +634,7 @@ SolutionList * findSolutionsRotations(int * biggest, RotationList * pieces) {
 	first->node = NULL;
 	first->next = NULL;
 	SolutionList * most_recent = first;
-	int id = pieces->id;
+	int id = (pieces->id);
 	
 	int * o = pieces->o;
 	int * ho = pieces->ho;
@@ -663,7 +723,7 @@ RotationList * createRotationList(ArrayList * list) {
 			a->next = malloc(sizeof(RotationList));
 			a = a->next;
 		}
-		a->id = list->id;
+		a->id = *(list->id);
 		a->o = list->array;
 		a->ro = rotateLeft(a->o);
 		a->rro = rotateLeft(a->ro);
@@ -813,7 +873,7 @@ SolutionList * findSolutions(int * biggest, ArrayList * pieces) {
 	int * cur_array = pieces->array;
 	int piece_width = *(cur_array + 1);
 	int piece_height = *(cur_array + 0);
-	int id = pieces->id;
+	int id = *(pieces->id);
 	SolutionList * first = malloc(sizeof(SolutionList));
 	first->node = NULL;
 	first->next = NULL;
@@ -965,7 +1025,8 @@ int * findAndRemoveLargestArray(ArrayList * list) {
 	int highest_so_far = numberOfTiles(list->array + 2, *(list->array +1), *(list->array));
 	int i = 1;
 	while(list->next != NULL) {
-		list->next->id = i;
+		list->next->id = malloc(sizeof(int *));
+		*(list->next->id) = i;
 		i++;
 		int count = numberOfTiles(list->next->array + 2, *(list->next->array +1), *(list->next->array));
 		if(count > highest_so_far) {
@@ -1007,6 +1068,8 @@ ArrayList * findAllPieces(int * input_array, int rows, int row_length) {
 				i++;
 			}
 		}
+		
+		
 		int y = i / row_length;
 		int x = i - y*row_length;
 		PieceNode first;
@@ -1022,25 +1085,27 @@ ArrayList * findAllPieces(int * input_array, int rows, int row_length) {
 		int right = *(info + 3);
 		int array_height = bottom - top + 1;
 		int array_width = right - left + 1;
-		int * total_array = malloc(array_height * array_width * sizeof(int) + 2);
-		int temp_i = 0;
-		while(temp_i < array_height * array_width + 2) {
-			*(total_array + temp_i) = 32;
-			temp_i++;
-		}
-		*(total_array + 0) = array_height;
-		*(total_array + 1) = array_width;
-		makePieceArray(total_array + 2, &first, left, top, array_width);
+		
 		ArrayList * iterator = start;
 		while(iterator->next != NULL) {
 			iterator = iterator->next;
 		}
-		ArrayList * next_it = malloc(sizeof(ArrayList));
-		iterator->next = next_it;
-		next_it->array = total_array;
+		iterator->next = malloc(sizeof(ArrayList));
+		iterator = iterator->next;
+		
+		
+		iterator->array = malloc((array_height * array_width + 2) * sizeof(int));
+		int temp_i = 0;
+		while(temp_i < array_height * array_width + 2) {
+			*(iterator->array + temp_i) = 32;
+			temp_i++;
+		}
+		*(iterator->array + 0) = array_height;
+		*(iterator->array + 1) = array_width;
+		makePieceArray(iterator->array + 2, &first, left, top, array_width);
 	}
-	return start->next;
 	free(temp_array);
+	return start->next;
 }
 
 void makePieceArray(int * array, PieceNode * n, int left_offset, int top_offset, int width) {

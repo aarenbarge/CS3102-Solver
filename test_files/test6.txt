@@ -1,21 +1,16 @@
-aaaaa
-a a a
-aaaaa
-a a a
-aaaaa
-
 aa
-a
 
 aaa
-a a
+
+aa
+
+aaa
 
 aaaa
 
-aaa
-a
+aa
 
-aaa
-a a
-
-
+aaaa
+aaaa
+aaaa
+aaaa

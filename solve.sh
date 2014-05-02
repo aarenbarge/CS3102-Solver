@@ -4,12 +4,17 @@ if [ -z "$1" ]; then
 	echo "You must atleast specify an input file!"
 else
 	if [ -f $1 ]; then
-		make	
+		make
+		ONE=$2
+		TWO=$3	
 		if [ -z $2 ]; then
-			z=0
+			ONE=0
 		fi
-		./a.out $1 $2
-		python drawbox.py c_output.txt 5
+		if [ -z $3 ]; then
+			TWO=5
+		fi
+		./a.out $1 $ONE
+		python drawbox.py c_output.txt $TWO
 	else
 		echo "That was not a valid input file!"
 	fi
