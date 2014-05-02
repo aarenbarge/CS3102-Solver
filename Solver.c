@@ -92,7 +92,7 @@ void writeNullSolFile();
 
 //Global Variable :(
 RotationList * all_rotations;
-
+ArrayList * known_solutions;
 
 
 
@@ -123,12 +123,12 @@ int main(int argc, char*argv[]) {
 
 ArrayList * solveWithRotations(char * file_name, int rotation) {
 	
-	int * input_array = openFileIntoArray(file_name);
+	int * input_array = openFileIntoArray(file_name); 
 	int rows = *(input_array + 0);
 	int row_length = *(input_array + 1);
 	int * array = (input_array + 2);
-	ArrayList * pieces_array = findAllPieces(array, rows, row_length);
-	int * biggest = findAndRemoveLargestArray(pieces_array);
+	ArrayList * pieces_array = findAllPieces(array, rows, row_length); 
+	int * biggest = findAndRemoveLargestArray(pieces_array); 
 	ArrayList * pieces = pieces_array->next;
 	
 	int total_num = getPieceSize(biggest);
@@ -172,6 +172,13 @@ ArrayList * solveWithRotations(char * file_name, int rotation) {
 			t = t->next;
 		}
 	}
+	
+	
+	
+	
+	
+	
+	//THIS IS THE PART THAT NEEDS TO BE REWRITTEN!!!!
 	
 	SolutionList * solutions = findSolutionsRotations(biggest, r);
 	if(solutions == NULL) {
@@ -220,52 +227,6 @@ ArrayList * solveWithRotations(char * file_name, int rotation) {
 	fclose(file);
 	
 	return readout;
-}
-
-void writeNullSolFile() {
-	FILE * file = fopen("c_output.txt", "w");
-	if (file == NULL)
-	{
-	    printf("Error opening file!\n");
-	    exit(1);
-	}
-	fprintf(file, "0\n");
-	fclose(file);
-}
-
-int getPieceSize(int * array) {
-	int width = *(array + 1);
-	int height = *(array);
-	array = array + 2;
-	int i = 0;
-	int count = 0;
-	while(i < width) {
-		int j = 0;
-		while(j < height) {
-			if (*(array + j*width + i) != 32) {
-				count++;
-			}
-			j++;
-		}
-		i++;
-	}
-	return count;
-}
-
-void write2DIntArrayToFile(FILE * f, int * array) {
-	int width = *(array + 1);
-	int height = *array;
-	array = array+2;
-	int i = 0;
-	while(i < height) {
-		int j = 0;
-		while(j < width) {
-			fprintf(f, "%d ", *(array + i*width + j));
-			j++;
-		} 
-		fprintf(f, "\n");
-		i++;
-	}
 }
 
 ArrayList * finalize(ArrayList * readout, RotationList * pieces, int * biggest, int num) {
@@ -680,41 +641,6 @@ SolutionList * findSolutionsRotations(int * biggest, RotationList * pieces) {
 	}
 }
 
-void removeIsometricRotations(RotationList * t) {
-	if(isAFit(t->hrrro,t->rrro,0,0)==0 || isAFit(t->hrrro,t->hro,0,0)==0 || isAFit(t->hrrro,t->ro,0,0)==0 ||
-		isAFit(t->hrrro,t->rro,0,0)==0 || isAFit(t->hrrro,t->ho,0,0)==0 || isAFit(t->hrrro,t->hrro,0,0)==0 ||
-			isAFit(t->hrrro,t->o,0,0)==0) {
-				t->hrrro = NULL;
-			}
-	if(isAFit(t->rrro,t->hro,0,0)==0 || isAFit(t->rrro,t->ro,0,0)==0 ||
-		isAFit(t->rrro,t->rro,0,0)==0 || isAFit(t->rrro,t->ho,0,0)==0 || isAFit(t->rrro,t->hrro,0,0)==0 ||
-			isAFit(t->rrro,t->o,0,0)==0) {
-				t->rrro = NULL;
-			}
-	if(isAFit(t->hrro,t->hro,0,0)==0 || isAFit(t->hrro,t->ro,0,0)==0 ||
-		isAFit(t->hrro,t->rro,0,0)==0 || isAFit(t->hrro,t->ho,0,0)==0 ||
-			isAFit(t->hrro,t->o,0,0)==0) {
-				t->hrro = NULL;
-			}	
-	if(isAFit(t->rro,t->hro,0,0)==0 || isAFit(t->rro,t->ro,0,0)==0 ||
-		isAFit(t->rro,t->ho,0,0)==0 ||
-			isAFit(t->rro,t->o,0,0)==0) {
-				t->rro = NULL;
-			}		
-	if(isAFit(t->hro,t->ro,0,0)==0 ||
-		isAFit(t->hro,t->ho,0,0)==0 ||
-			isAFit(t->hro,t->o,0,0)==0) {
-				t->hro = NULL;
-			}	
-	if(isAFit(t->ro,t->ho,0,0)==0 ||
-			isAFit(t->ro,t->o,0,0)==0) {
-				t->ro = NULL;
-			}	
-	if(isAFit(t->ho, t->o,0,0)==0) {
-		t->ho = NULL;
-	}
-}
-
 RotationList * createRotationList(ArrayList * list) {
 	RotationList * to_return = malloc(sizeof(RotationList));
 	RotationList * a = to_return;
@@ -1020,6 +946,229 @@ int isAFit(int * biggest, int * smaller, int x, int y) {
 	return ruined;
 }
 
+
+
+
+
+
+
+
+
+
+
+//Dont Need Tweaking!
+void writeNullSolFile() {
+	FILE * file = fopen("c_output.txt", "w");
+	if (file == NULL)
+	{
+	    printf("Error opening file!\n");
+	    exit(1);
+	}
+	fprintf(file, "0\n");
+	fclose(file);
+}
+int getPieceSize(int * array) {
+	int width = *(array + 1);
+	int height = *(array);
+	array = array + 2;
+	int i = 0;
+	int count = 0;
+	while(i < width) {
+		int j = 0;
+		while(j < height) {
+			if (*(array + j*width + i) != 32) {
+				count++;
+			}
+			j++;
+		}
+		i++;
+	}
+	return count;
+}
+void write2DIntArrayToFile(FILE * f, int * array) {
+	int width = *(array + 1);
+	int height = *array;
+	array = array+2;
+	int i = 0;
+	while(i < height) {
+		int j = 0;
+		while(j < width) {
+			fprintf(f, "%d ", *(array + i*width + j));
+			j++;
+		} 
+		fprintf(f, "\n");
+		i++;
+	}
+}
+void removeIsometricRotations(RotationList * t) {
+	if(isAFit(t->hrrro,t->rrro,0,0)==0 || isAFit(t->hrrro,t->hro,0,0)==0 || isAFit(t->hrrro,t->ro,0,0)==0 ||
+		isAFit(t->hrrro,t->rro,0,0)==0 || isAFit(t->hrrro,t->ho,0,0)==0 || isAFit(t->hrrro,t->hrro,0,0)==0 ||
+			isAFit(t->hrrro,t->o,0,0)==0) {
+				t->hrrro = NULL;
+			}
+	if(isAFit(t->rrro,t->hro,0,0)==0 || isAFit(t->rrro,t->ro,0,0)==0 ||
+		isAFit(t->rrro,t->rro,0,0)==0 || isAFit(t->rrro,t->ho,0,0)==0 || isAFit(t->rrro,t->hrro,0,0)==0 ||
+			isAFit(t->rrro,t->o,0,0)==0) {
+				t->rrro = NULL;
+			}
+	if(isAFit(t->hrro,t->hro,0,0)==0 || isAFit(t->hrro,t->ro,0,0)==0 ||
+		isAFit(t->hrro,t->rro,0,0)==0 || isAFit(t->hrro,t->ho,0,0)==0 ||
+			isAFit(t->hrro,t->o,0,0)==0) {
+				t->hrro = NULL;
+			}	
+	if(isAFit(t->rro,t->hro,0,0)==0 || isAFit(t->rro,t->ro,0,0)==0 ||
+		isAFit(t->rro,t->ho,0,0)==0 ||
+			isAFit(t->rro,t->o,0,0)==0) {
+				t->rro = NULL;
+			}		
+	if(isAFit(t->hro,t->ro,0,0)==0 ||
+		isAFit(t->hro,t->ho,0,0)==0 ||
+			isAFit(t->hro,t->o,0,0)==0) {
+				t->hro = NULL;
+			}	
+	if(isAFit(t->ro,t->ho,0,0)==0 ||
+			isAFit(t->ro,t->o,0,0)==0) {
+				t->ro = NULL;
+			}	
+	if(isAFit(t->ho, t->o,0,0)==0) {
+		t->ho = NULL;
+	}
+}
+void debugPieces(int * biggest, ArrayList * pieces) {
+	printf("\n\nThe Biggest Piece:\n\n");                                  
+	print2DIntArray(biggest + 2, *(biggest + 1), *biggest);                
+	printf("\n\nThe Rest of the Pieces:\n\n");                             
+	int test = 1;                                                          
+	ArrayList * n = pieces;                                                
+	while(test == 1) {                                                     
+		print2DIntArray((n->array) + 2, *(n->array + 1), *(n->array + 0)); 
+		printf("\n\n");                                                    
+		if(n->next == NULL) {                                              
+			test = 0;
+		}
+		else {
+			n = n->next;
+		}
+	}
+}
+int foundAllPieces(int * array, int width, int height) {
+	int done = 0;
+	int i = 0;
+	while(i < height) {
+		if(done == 1) {
+			break;
+		}
+		int j = 0;
+		while(j < width) {
+			if(*(array + i*width + j) != 32) {
+				done = 1;
+				break;
+			}
+			j++;
+		}
+		i++;
+	}
+	return done;
+}
+int * cloneIntArray(int * array) {
+	int height = *array;
+	int width =  *(array + 1);
+	int i = 0;
+	int * to_return = malloc(width * height * sizeof(int) + 2);
+	while ( i < height * width + 2) {
+		*(to_return + i) = *(array + i);
+		i++;
+	}
+
+	return to_return;
+} 
+void print2DIntArray(int * array, int width, int height) {
+	int i = 0;
+	while(i < height) {
+		int j = 0;
+		while(j < width) {
+			if(*(array + i*width + j) == 32) {
+				printf("   ");
+			}
+			else {
+				printf("%d ", *(array + i*width + j));
+			}
+			j++;
+		}
+		printf("\n");
+		i++;
+	}
+} 
+int * openFileIntoArray(char * file_name) {
+	FILE *input;
+	char *mode = "r";
+	input = fopen(file_name, mode);
+	if(input == NULL) { 
+		printf("Please provide a valid input file!\n");
+		exit(1);
+	}
+	
+	else {
+		int ch = getc(input);
+		Point first;
+		Point * n = &first;
+		while(ch != EOF) {
+			n->value = ch;
+			n->next = malloc(sizeof(Point));
+			n = n->next;
+			ch = getc(input);
+		}
+		n = &first;
+		int row_length = 0;
+		int rows = 1;
+		int counter = 0;
+		while(n->next != NULL) {
+			if(n->value != 10) {
+				counter++;
+			}
+			if(n->value == 10) {
+				if(counter > row_length) {
+					row_length = counter;
+				}
+				counter = 0;
+				rows++;
+			}
+			n = n->next;
+		}
+		if(counter > row_length) {
+			row_length = counter;
+		}
+		row_length++;
+		int * to_return = malloc(row_length * rows * sizeof(int) + 2*sizeof(int));
+		*(to_return) = rows;
+		*(to_return + 1) = row_length;
+		n = &first;
+		int i = 0;
+		while(i < rows) {
+			int counters = 0;
+			while(counters < row_length) {
+				if(n->next == NULL) {
+					*(to_return + i*row_length + counters + 2) = 32;
+				}
+				else if(n->value != 10) {
+					*(to_return + i*row_length + counters + 2) = n->value;
+					if(counters + 1 != row_length) {
+						n = n->next; 
+					}
+				}
+				else {
+					*(to_return + i*row_length + counters + 2) = 32;
+				}
+				counters++;
+			}
+			if(n->next != NULL) {
+				n = n->next;
+			}
+			i++;
+		}		
+		return to_return;
+	}
+}
 int * findAndRemoveLargestArray(ArrayList * list) {
 	int * big_ptr = list->array;
 	int highest_so_far = numberOfTiles(list->array + 2, *(list->array +1), *(list->array));
@@ -1039,7 +1188,6 @@ int * findAndRemoveLargestArray(ArrayList * list) {
 	}
 	return big_ptr;
 }
-
 int numberOfTiles(int * n, int width, int height) {
 	int i = 0;
 	int count = 0;
@@ -1051,7 +1199,6 @@ int numberOfTiles(int * n, int width, int height) {
 	}
 	return count;
 }
-
 ArrayList * findAllPieces(int * input_array, int rows, int row_length) {
 	int * temp_array = cloneIntArray(input_array);
 	
@@ -1107,7 +1254,6 @@ ArrayList * findAllPieces(int * input_array, int rows, int row_length) {
 	free(temp_array);
 	return start->next;
 }
-
 void makePieceArray(int * array, PieceNode * n, int left_offset, int top_offset, int width) {
 	int x_c = n->x_coord;
 	int y_c = n->y_coord;
@@ -1127,7 +1273,6 @@ void makePieceArray(int * array, PieceNode * n, int left_offset, int top_offset,
 		makePieceArray(array, n->right, left_offset, top_offset, width);
 	}
 }
-
 int * getInfo(PieceNode * n, int cur_top, int cur_bottom, int cur_left, int cur_right) {
 	if(n->x_coord < cur_left) {
 		cur_left = n->x_coord;
@@ -1212,7 +1357,6 @@ int * getInfo(PieceNode * n, int cur_top, int cur_bottom, int cur_left, int cur_
 	*(to_return + 3) = cur_right;
 	return to_return;
 }
-
 void examineNeighbors(int * array, int width, int height, PieceNode * n) {
 	int x = n->x_coord;
 	int y = n->y_coord;
@@ -1268,145 +1412,5 @@ void examineNeighbors(int * array, int width, int height, PieceNode * n) {
 	}
 	else {
 		n->right = NULL;
-	}
-}
-
-int * openFileIntoArray(char * file_name) {
-	FILE *input;
-	char *mode = "r";
-	input = fopen(file_name, mode);
-	if(input == NULL) { 
-		printf("Please provide a valid input file!\n");
-		exit(1);
-	}
-	
-	else {
-		int ch = getc(input);
-		Point first;
-		Point * n = &first;
-		while(ch != EOF) {
-			n->value = ch;
-			n->next = malloc(sizeof(Point));
-			n = n->next;
-			ch = getc(input);
-		}
-		n = &first;
-		int row_length = 0;
-		int rows = 1;
-		int counter = 0;
-		while(n->next != NULL) {
-			if(n->value != 10) {
-				counter++;
-			}
-			if(n->value == 10) {
-				if(counter > row_length) {
-					row_length = counter;
-				}
-				counter = 0;
-				rows++;
-			}
-			n = n->next;
-		}
-		if(counter > row_length) {
-			row_length = counter;
-		}
-		row_length++;
-		int * to_return = malloc(row_length * rows * sizeof(int) + 2*sizeof(int));
-		*(to_return) = rows;
-		*(to_return + 1) = row_length;
-		n = &first;
-		int i = 0;
-		while(i < rows) {
-			int counters = 0;
-			while(counters < row_length) {
-				if(n->next == NULL) {
-					*(to_return + i*row_length + counters + 2) = 32;
-				}
-				else if(n->value != 10) {
-					*(to_return + i*row_length + counters + 2) = n->value;
-					if(counters + 1 != row_length) {
-						n = n->next; 
-					}
-				}
-				else {
-					*(to_return + i*row_length + counters + 2) = 32;
-				}
-				counters++;
-			}
-			if(n->next != NULL) {
-				n = n->next;
-			}
-			i++;
-		}		
-		return to_return;
-	}
-}
-
-void print2DIntArray(int * array, int width, int height) {
-	int i = 0;
-	while(i < height) {
-		int j = 0;
-		while(j < width) {
-			if(*(array + i*width + j) == 32) {
-				printf("   ");
-			}
-			else {
-				printf("%d ", *(array + i*width + j));
-			}
-			j++;
-		}
-		printf("\n");
-		i++;
-	}
-} 
-
-int * cloneIntArray(int * array) {
-	int height = *array;
-	int width =  *(array + 1);
-	int i = 0;
-	int * to_return = malloc(width * height * sizeof(int) + 2);
-	while ( i < height * width + 2) {
-		*(to_return + i) = *(array + i);
-		i++;
-	}
-
-	return to_return;
-} 
-
-int foundAllPieces(int * array, int width, int height) {
-	int done = 0;
-	int i = 0;
-	while(i < height) {
-		if(done == 1) {
-			break;
-		}
-		int j = 0;
-		while(j < width) {
-			if(*(array + i*width + j) != 32) {
-				done = 1;
-				break;
-			}
-			j++;
-		}
-		i++;
-	}
-	return done;
-}
-
-void debugPieces(int * biggest, ArrayList * pieces) {
-	printf("\n\nThe Biggest Piece:\n\n");                                  
-	print2DIntArray(biggest + 2, *(biggest + 1), *biggest);                
-	printf("\n\nThe Rest of the Pieces:\n\n");                             
-	int test = 1;                                                          
-	ArrayList * n = pieces;                                                
-	while(test == 1) {                                                     
-		print2DIntArray((n->array) + 2, *(n->array + 1), *(n->array + 0)); 
-		printf("\n\n");                                                    
-		if(n->next == NULL) {                                              
-			test = 0;
-		}
-		else {
-			n = n->next;
-		}
 	}
 }

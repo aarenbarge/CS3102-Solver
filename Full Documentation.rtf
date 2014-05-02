@@ -1,0 +1,181 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1265\cocoasubrtf190
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww11220\viewh15420\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+
+\f0\b\fs36 \cf0                              Aaren Barge (jab9rm)\
+                CS3102 Term Project Documentation
+\b0\fs24 \
+\
+//\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97//\
+Solution Overview\
+//\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97//\
+\
+The program I\'92ve written to solve the general 2D tiling problem takes a properly formatted (as per the specifications on Robins\'92 website) and displays the requested number of non-isomorphic solutions.  In order to accomplish this, I have written three files: 
+\b Solver.c
+\b0  which takes at least one and up to two parameters from the command line.  The first is the file name of the input file which outlines the pieces and target configuration, the second is an optional flag which lets users toggle the rotation settings of the solver.  If a \'931\'94 is provided on the command line, the solving routine allows pieces to be rotated and reflected up to isomorphism, otherwise no rotation or reflection is considered by the routine.  Solver.c writes the non-isomorphic solutions to a file \'93c_output.txt\'94.  Additionally, I\'92ve written 
+\b drawbox.py
+\b0  which is a python script that reads \'93c_output.txt\'94 and draws the solutions graphically.  This script takes as command line arguments the name of the file to be read, and the maximum number of solutions to be displayed.  Finally, I\'92ve written 
+\b solve.sh
+\b0  which is a shell script that automates the process of running the C executable and piping its output into drawbox.py as well as handing variability in the user flags.  Additionally I\'92ve included a makefile that will compile the C source into ./a.out executable.\
+\
+//\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97//\
+Running the Program\
+//\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97//\
+\
+To run the whole program, navigate to the proper directory and call:\
+\
+	./solve.sh __input_file__\
+\
+This runs the default version of the program which does not allow for rotation of the pieces, and will display a maximum of 5 solutions.  To allow rotations and reflections call:\
+\
+	./solve.sh __input_file__  1\
+\
+To adjust the maximum number of solutions to display, you must also specify whether rotations are allowed or not:\
+\
+	./solve.sh __input_file__  1    15\
+\
+Will allow rotations and reflections and display a maximum of 15 solutions,\
+\
+	./solve.sh __input_file  0    100 \
+\
+Will prohibit rotations and display a maximum of 100 solutions.\
+\
+You can also compile and run the solving routine with:\
+\
+	./a.out __input_file__  \'97rotate?\'97\
+\
+Or You can display the solutions (as long as the file is well formed) using the python routine:\
+\
+	python drawbox.py __input_file__  \'97max\'97\
+\
+//\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97//\
+Solution Description\
+//\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97//\
+\
+My program\'92s main algorithm (contained in the C executable) contains a file-parsing routine which takes an input file and finds all of the pieces contained in that file as well as selects the largest among them to be the \'93target\'94 configuration.  Then the program creates all non-isomorphic rotations of these pieces, and passes these to the solving routine.  The solving routine returns a tree of Solution Nodes (a data type I define) that must be examined to determine a list of complete solutions.  This solution list (another data type I\'92ve created) is passed to the isometry testing routine which eliminates the solutions which were determined to be isometric to each other.  Finally the non-isometric solutions are written to a file.  The drawbox.py script also has a file parsing routine which takes all of the data written to the C output file and stores it in a list which is used later.  Then for each of the solutions, up to a maximum, it creates an image of that solution and displays it to the screen.\
+\
+I\'92ll describe each of these routines in detail, going over inputs, outputs, datatypes and functions used.\
+\
+//\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97//\
+File-Parsing Routine (Solver.c)\
+//\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97//\
+\
+First, the program opens the file, and converts each character to its integer ASCII equivalent.  These are then stored in a 2D int array to be searched through.  The method that accomplishes this is 
+\b openFileIntoArray(char * file_name)
+\b0 :\
+\
+	Inputs: 	char * file_name 	= the name of the file to be parsed\
+	Outputs:	int *			= a pointer to the start of an 2D integer array which contains the ASCII equivalents of all characters in the input file in their proper 2D locations\
+\
+PLEASE NOTE: I have adopted the standard that (array + 0) points to the arrays height, (array + 1) points to the array\'92s width, and (array + 2) points to the beginning of the array.  This is how I store all 2D arrays\
+\
+Once the file has been read into a 2D Int array, this array is searched through to find all of the pieces (including the target configuration).  The method that accomplishes this is 
+\b ArrayList * findAllPieces(int * input_array, int rows, int row_length
+\b0 ):\
+\
+	Inputs: 	int * input_array 	= a pointer to the 2D array from the previous function\
+			int rows		= the height of the array \
+			int row_length	= the width of the array\
+	Outputs	ArrayList * 		= A list of 2D int arrays, each of which contains the information for a single piece\
+\
+I have defined a number of data structures to aid my program, ArrayList is the first.  Each ArrayList node has a pointer to an ID which is stored as an int (this is useful for labeling the pieces), a pointer to an int array, and a pointer to the next ArrayList in the list.\
+\
+		typedef struct ArrayList \{\
+			int * id;\
+			int * array;\
+			struct ArrayList * next;\
+		\} ArrayList;\
+\
+The 
+\b findAllPieces
+\b0  method works as follows.  While it is determined that not all pieces have been found (the method 
+\b foundAllPieces
+\b0  returns 0 if all of the pieces have been found in the file, 1 otherwise) it finds an element of the array which is non-negative (indicating it has already been found) and not equal to 32 (this is the character code for a space) and recursively gets information about its neighbors in order to put together a full piece.  Each time it finds a connected neighbor, it marks it as found and adds it to a PieceNode (a data structure I wrote to aid this piece finding process).  When the entire piece has been found recursively, an array is constructed to represent it.  This array contains the value of the character in the input file wherever a character was found, and the value of 32 (to indicate a blank space) wherever nothing was found.  The function then creates a new ArrayList structure to continue the process, a pointer to the first ArrayList is returned once all pieces have been found.\
+\
+The last function that the file-parsing routine uses is 
+\b int * findAndRemoveLargestArray(ArrayList * list) 
+\b0 which removes the largest piece from the ArrayList returned from findAllPieces and returns a pointer to it.\
+\
+	Inputs:	ArrayList * list 	= an list of 2D int arrays corresponding to the unique puzzle pieces\
+	Outputs:	int *			= a pointer to the 2D int array containing the largest piece which is recognized as the target configuration\
+\
+//\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97//\
+Piece Rotation Routine (Solver.c)\
+//\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97//\
+\
+Because the solver must be able to find solutions which contain rotations and reflections of the original pieces provided in the input file, my program has a routine which will initialize a data structure I\'92ve called a RotationList.  \
+\
+		typedef struct RotationList\{\
+			int id;\
+			int * o;				// Original configuration\
+			int * ro;			// Rotated once to the left\
+			int * rro;			// Rotated twice to the left\
+			int * rrro;			// Rotated thrice to the left\
+			int * ho;			// Reflected horizontally\
+			int * hro;			// Reflected horizontally and rotated once\
+			int * hrro;			// Reflected horizontally and rotated twice\
+			int * hrrro;			// Reflected horizontally and rotated thrice\
+			struct RotationList * next;\
+		\}RotationList;		\
+\
+A RotationList contains all possible configurations of a piece.  Each pointer points to a 2D int array which corresponds to some transformation of the original (denoted o) configuration.  If a configuration is isomorphic to another, its pointer is initialized to NULL.  Also in the event that no rotation and reflection is allowed by the user, all of these pointers except o are set to NULL.  \
+\
+The function that creates this RotationList is 
+\b RotationList * createRotationList(ArrayList * list)
+\b0 :\
+\
+	Input:		ArrayList * list 	= A pointer to the ArrayList of pieces generated by the file parsing routine\
+	Output:	RotationList *		= A pointer to the first RotationList node which stores pointers to the possible configurations of the first puzzle piece\
+\
+This method makes use of three others, the 
+\b rotateLeft(int * array)
+\b0  and 
+\b flipHorizontal(int * array)
+\b0  functions respectively transform a 2D int array into another 2D int array which is rotated left and reflected horizontally.  \
+\
+\
+int main(int argc, char*argv[]);\
+\
+\
+\
+\
+int * openFileIntoArray(char * file_name);\
+void print2DIntArray(int * array, int width, int height);\
+int * cloneIntArray(int * array);\
+ArrayList * findAllPieces(int * input_array, int rows, int row_length);\
+int foundAllPieces(int * array, int width, int height);\
+void examineNeighbors(int * array, int width, int height, PieceNode * n);\
+int * getInfo(PieceNode * n, int cur_top, int cur_bottom, int cur_left, int cur_right);\
+void makePieceArray(int * array, PieceNode * n, int left_offset, int top_offset, int width);\
+int * findAndRemoveLargestArray(ArrayList * list);\
+int numberOfTiles(int * n, int width, int height);\
+void debugPieces(int * biggest, ArrayList * pieces);\
+SolutionList * findSolutions(int * biggest, ArrayList * pieces);\
+int isAFit(int * biggest, int * smaller, int x, int y);\
+void negateValues(int * biggest, int * smaller, int x, int y);\
+void makeValuesPositive(int * biggest);\
+ArrayList * readSolutions(SolutionList * solutions, ArrayList * list, int num);\
+int getNumberOfPieces(ArrayList * pieces);\
+void printSolutionFromArrayList(ArrayList * soln, int num);\
+void debugSolutionList(ArrayList * temporary, int p);\
+ArrayList * parseSolutionsList(SolutionList * solutions, int p);\
+ArrayList * solveNoRotations(char * file_name);\
+SolutionList * findSolutionsRotations(int * biggest, RotationList * pieces);\
+int * rotateLeft(int * array);\
+int * flipHorizontal(int * array);\
+RotationList * createRotationList(ArrayList * list);\
+ArrayList * solveWithRotations(char * file_name, int rotation);\
+void removeIsometricRotations(RotationList * t);\
+void debugRotationsList(RotationList * r);\
+SolutionList * findPartialSolutionRotations(int * biggest, int * cur_array, RotationList * pieces, SolutionList * most_recent, int ident, int rotation);\
+void removeAllSolutionIsometries(ArrayList * list, int * biggest, int num, RotationList * pieces);\
+int * initializeIntArray(ArrayList * list, int * array, int width, int height, int num, RotationList * pieces);\
+int areIsomorphic(int * array, int * temp, int num);\
+int areSame(int * array, int * temp, int num);\
+void removeNullSolutions(ArrayList * list);\
+ArrayList * finalize(ArrayList * readout, RotationList * r, int * biggest, int num);\
+void write2DIntArrayToFile(FILE * f, int * array);\
+int getPieceSize(int * array);\
+void writeNullSolFile();}
