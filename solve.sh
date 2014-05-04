@@ -5,7 +5,7 @@ if [ -z "$1" ]; then          	#The user has not provided an input file, alert a
 	exit
 else
 	if [ -f $1 ]; then        	#This checks that the input file was valid, if not alert and exit
-		make					#Compile the solving routine with makefile
+		#make					#Compile the solving routine with makefile
 		ONE=$2					#Initialize a variable (rotation flag)
 		TWO=$3					#Initialize a variable (Max Solutions)
 		if [ -z $2 ]; then			#If user has not specified rotation flag, set default to no rotate

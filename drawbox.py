@@ -3,8 +3,8 @@ import sys                                  # sys to read command line arguments
 
 file = sys.argv[1]                  # The file which contains the solutions data, assumed to be well formed
 num  = int(sys.argv[2])             # The maximum number of solutions to display, if provided
-if num > 25:
-    num = 25
+if num > 20:
+    num = 20
 
 f = open(file, 'r')                 # open the file in read mode
 content = f.readlines()             # Read all the lines into a list called 'content'
