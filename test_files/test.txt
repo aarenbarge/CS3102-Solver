@@ -1,17 +1,18 @@
+aaaa
+   a
 
-       O  O        O
-   OO  O  O   OO   O  OO        
-  OO   O  O   OO  OO   O        
-   O   O  OO  O   O    OO       
-       O                    O   
-  OOO        O    O     O   O   
-   O   O O   O    OO   OOO  OO  
-   O   OOO   OOO   OO   O   O   
+aaa
+  aa
 
- OOOOOOOOO
-OOO O O OOO
-O OOOOOOO O
-OOO O O OOO
-O OOOOOOO O
-OOO O O OOO
- OOOOOOOOO
+aa
+aa
+
+aaa
+a
+a
+a
+
+aaaaa
+aaaaa
+aaaaa
+aaaaa
